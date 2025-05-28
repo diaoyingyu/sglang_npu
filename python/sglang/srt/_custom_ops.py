@@ -11,7 +11,7 @@ use_vllm_custom_allreduce = get_bool_env_var(
     "USE_VLLM_CUSTOM_ALLREDUCE", default="false"
 )
 
-if not is_hpu() and not is_npu():
+if not is_hpu():
     # ROCm does not use vllm custom allreduce
     if use_vllm_custom_allreduce and not is_hip():
         try:
@@ -25,7 +25,7 @@ if not is_hpu() and not is_npu():
             logger.warning("Failed to import from custom_ar with %r", e)
 
 
-if not is_hip():
+if not is_hip() and not is_npu():
     if use_vllm_custom_allreduce:
         custom_op = torch.ops._C_custom_ar
     else:

@@ -1480,7 +1480,7 @@ def get_compiler_backend() -> str:
         return "hpu_backend"
 
     if hasattr(torch, "npu") and torch.npu.is_available():
-        iimport torchair as tng
+        import torchair as tng
         import torchair.ge_concrete_graph.ge_converter.experimental.patch_for_hcom_allreduce
         from torchair.configs.compiler_config import CompilerConfig
 
