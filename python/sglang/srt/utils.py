@@ -1274,6 +1274,8 @@ def get_device_memory_capacity(device: str = None):
         gpu_mem = get_amdgpu_memory_capacity()
     elif device == "hpu":
         gpu_mem = get_hpu_memory_capacity()
+    elif device == "npu":
+        gpu_mem = 61400
     else:
         # GPU memory is not known yet or no GPU is available.
         gpu_mem = None
@@ -1393,6 +1395,11 @@ def get_device(device_id: Optional[int] = None) -> str:
         if device_id == None:
             return "xpu"
         return "xpu:{}".format(device_id)
+    
+    if hasattr(torch, "npu") and torch.npu.is_available():
+        if device_id == None:
+            return "npu"
+        return "npu:{}".format(device_id)
 
     if is_habana_available():
         try:
@@ -1473,10 +1480,15 @@ def get_compiler_backend() -> str:
         return "hpu_backend"
 
     if hasattr(torch, "npu") and torch.npu.is_available():
-        import torchair
+        import torchair as tng
+        import torchair.ge_concrete_graph.ge_converter.experimental.patch_for_hcom_allreduce
+        from torchair.configs.compiler_config import CompilerConfig
 
-        config = torchair.CompilerConfig()
-        npu_backend = torchair.get_npu_backend(compiler_config=config)
+        compiler_config = CompilerConfig()
+        compiler_config.experimental_config.frozen_parameter = True
+        compiler_config.experimental_config.tiling_schedule_optimize = True
+        compiler_config.experimental_config.topology_sorting_strategy = "StableRDFS"
+        npu_backend = tng.get_npu_backend(compiler_config=compiler_config)
         return npu_backend
 
     return "inductor"
